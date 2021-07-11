@@ -242,8 +242,6 @@ namespace ILRuntime.Runtime.Enviorment
             esp->Value = val;
             esp->ValueLow = 0;
 
-            if (domain.EnableRegisterVM)
-                mStack.Add(null);
             esp++;
             paramCnt++;
         }
@@ -253,8 +251,6 @@ namespace ILRuntime.Runtime.Enviorment
             esp->ObjectType = ObjectTypes.Long;
             *(long*)&esp->Value = val;
 
-            if (domain.EnableRegisterVM)
-                mStack.Add(null);
             esp++;
             paramCnt++;
         }
@@ -269,8 +265,6 @@ namespace ILRuntime.Runtime.Enviorment
             esp->ObjectType = ObjectTypes.Float;
             *(float*)&esp->Value = val;
 
-            if (domain.EnableRegisterVM)
-                mStack.Add(null);
             esp++;
             paramCnt++;
         }
@@ -284,8 +278,7 @@ namespace ILRuntime.Runtime.Enviorment
         {
             esp->ObjectType = ObjectTypes.Double;
             *(double*)&esp->Value = val;
-            if (domain.EnableRegisterVM)
-                mStack.Add(null);
+
             esp++;
             paramCnt++;
         }
@@ -294,10 +287,7 @@ namespace ILRuntime.Runtime.Enviorment
         {
             if (obj is CrossBindingAdaptorType)
                 obj = ((CrossBindingAdaptorType)obj).ILInstance;
-            var res = ILIntepreter.PushObject(esp, mStack, obj, isBox);
-            if (esp->ObjectType < ObjectTypes.Object && domain.EnableRegisterVM)
-                mStack.Add(null);
-            esp = res;
+            esp = ILIntepreter.PushObject(esp, mStack, obj, isBox);
             paramCnt++;
         }
 
@@ -306,8 +296,6 @@ namespace ILRuntime.Runtime.Enviorment
             var dst = ILIntepreter.Add(ebp, index);
             esp->ObjectType = ObjectTypes.StackObjectReference;
             *(long*)&esp->Value = (long)dst;
-            if (domain.EnableRegisterVM)
-                mStack.Add(null);
             esp++;
         }
 
@@ -361,10 +349,7 @@ namespace ILRuntime.Runtime.Enviorment
             if (cnt != paramCnt)
                 throw new ArgumentException("Argument count mismatch");
             bool unhandledException;
-            if (domain.EnableRegisterVM)
-                esp = intp.ExecuteR(method, esp, out unhandledException);
-            else
-                esp = intp.Execute(method, esp, out unhandledException);
+            esp = intp.Execute(method, esp, out unhandledException);
             esp--;
         }
 
