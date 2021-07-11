@@ -14,7 +14,7 @@ namespace ILRuntime.Runtime.Intepreter.RegisterVM
 {
     partial class Optimizer
     {
-        public const int MaximalInlineInstructionCount = 20;
+        public const int MaximalInlineInstructionCount = 10;
         public static void InlineMethod(CodeBasicBlock block, ILMethod method, RegisterVMSymbolLink symbolLink, ref Dictionary<int, int[]> jumpTables, short baseRegIdx, bool hasReturn)
         {
             var ins = block.FinalInstructions;
@@ -69,7 +69,7 @@ namespace ILRuntime.Runtime.Intepreter.RegisterVM
                         {
                             if (needMove)
                             {
-                                for (int j = branchStart; j < ins.Count; j++)
+                                for (int j = 0; j < ins.Count; j++)
                                 {
                                     var op2 = ins[j];
                                     if (IsBranching(op2.Code))
@@ -78,23 +78,6 @@ namespace ILRuntime.Runtime.Intepreter.RegisterVM
                                         {
                                             op2.Operand++;
                                             ins[j] = op2;
-                                        }
-                                    }
-                                    else if (IsIntermediateBranching(op2.Code))
-                                    {
-                                        if (op2.Operand4 > i)
-                                        {
-                                            op2.Operand4++;
-                                            ins[j] = op2;
-                                        }
-                                    }
-                                    else if(op2.Code == OpCodeREnum.Switch)
-                                    {
-                                        var targets = jumpTables[op2.Operand];
-                                        for(int k = 0; k < targets.Length; k++)
-                                        {
-                                            if (targets[k] > i)
-                                                targets[k]++;
                                         }
                                     }
                                 }

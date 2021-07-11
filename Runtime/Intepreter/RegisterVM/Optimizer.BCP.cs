@@ -69,23 +69,6 @@ namespace ILRuntime.Runtime.Intepreter.RegisterVM
                             {
                                 propagationInline = true;
                             }
-
-                            short ySrc, ySrc2, ySrc3;
-                            if (GetOpcodeSourceRegister(ref Y, hasReturn, out ySrc, out ySrc2, out ySrc3))
-                            {
-                                if (ySrc >= 0 && ySrc == xDst)
-                                {
-                                    break;
-                                }
-                                if (ySrc2 >= 0 && ySrc2 == xDst)
-                                {
-                                    break;
-                                }
-                                if (ySrc3 >= 0 && ySrc3 == xDst)
-                                {
-                                    break;
-                                }
-                            }
                             short yDst;
                             if (GetOpcodeDestRegister(ref Y, out yDst))
                             {
@@ -102,13 +85,13 @@ namespace ILRuntime.Runtime.Intepreter.RegisterVM
                                         break;
                                     }
                                     ReplaceOpcodeDest(ref Y, xDst);
-                                    for (int k = j + 1; k < lst.Count; k++)
+                                    for (int k = j + 1; k < i; k++)
                                     {
+                                        if (canRemove.Contains(k))
+                                            continue;
                                         OpCodeR Z = lst[k];
                                         bool replaced = false;
                                         short zSrc, zSrc2, zSrc3;
-                                        short zDst;
-                                        GetOpcodeDestRegister(ref Z, out zDst);
                                         if (GetOpcodeSourceRegister(ref Z, hasReturn, out zSrc, out zSrc2, out zSrc3))
                                         {
                                             if(zSrc == yDst)
@@ -129,15 +112,29 @@ namespace ILRuntime.Runtime.Intepreter.RegisterVM
                                         }
                                         if (replaced)
                                             lst[k] = Z;
-                                        if (zDst >= 0)
-                                        {
-                                            if (zDst == yDst)
-                                                break;
-                                        }
                                     }
                                     canRemove.Add(i);
                                     ended = true;
                                     lst[j] = Y;
+                                    break;
+                                }
+                            }
+                            short ySrc, ySrc2, ySrc3;
+                            if (GetOpcodeSourceRegister(ref Y, hasReturn, out ySrc, out ySrc2, out ySrc3))
+                            {
+                                if (ySrc >= 0 && ySrc == xDst)
+                                {
+                                    ended = true;
+                                    break;
+                                }
+                                if (ySrc2 >= 0 && ySrc2 == xDst)
+                                {
+                                    ended = true;
+                                    break;
+                                }
+                                if (ySrc3 >= 0 && ySrc3 == xDst)
+                                {
+                                    ended = true;
                                     break;
                                 }
                             }

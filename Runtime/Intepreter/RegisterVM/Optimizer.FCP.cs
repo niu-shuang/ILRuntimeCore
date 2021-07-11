@@ -134,15 +134,20 @@ namespace ILRuntime.Runtime.Intepreter.RegisterVM
                                 }
                                 if (xDst == yDst)
                                 {
+                                    if (propagationInline)
+                                    {
+                                        ended = true;
+                                        break;
+                                    }
                                     postPropagation = false;
+                                    canRemove.Add(i);
                                     ended = true;
-                                    if (!propagationInline)
-                                        canRemove.Add(i);
-                                    break;
+                                    //if (!propagationInline)
+                                        break;
                                 }
                             }
 
-                            if(Y.Code == OpCodeREnum.Ret && !propagationInline)
+                            if(Y.Code == OpCodeREnum.Ret)
                             {
                                 postPropagation = false;
                                 canRemove.Add(i);
@@ -173,74 +178,39 @@ namespace ILRuntime.Runtime.Intepreter.RegisterVM
                     foreach (var idx in pendingFCP)
                     {
                         var X = originBlock.FinalInstructions[idx];
-                        short xDst, xSrc, xSrc2, xSrc3;
+                        short xDst;
                         GetOpcodeDestRegister(ref X, out xDst);
-                        GetOpcodeSourceRegister(ref X, hasReturn, out xSrc, out xSrc2, out xSrc3);
                         pendingBlocks.Clear();
                         bool cannotRemove = false;
                         bool isAbort = false;
-                        processedBlocks.Clear();
                         foreach (var nb in originBlock.NextBlocks)
                             pendingBlocks.Enqueue(nb);
-                        processedBlocks.Add(originBlock);
                         while (pendingBlocks.Count > 0)
                         {
                             var cur = pendingBlocks.Dequeue();
 
                             var ins = cur.FinalInstructions;
-                            bool propagationInline = false;
+                            var canRemove = cur.CanRemove;
 
                             for (int j = 0; j < ins.Count; j++)
                             {
+                                if (canRemove.Contains(j))
+                                    continue;
                                 if(cur == originBlock && j == idx)
                                 {
                                     isAbort = true;
                                     break;
                                 }
                                 var Y = ins[j];
-                                if (Y.Code == OpCodeREnum.InlineStart)
-                                    propagationInline = true;
-                                else if (Y.Code == OpCodeREnum.InlineEnd)
-                                {
-                                    propagationInline = false;
-                                }
+
                                 short ySrc, ySrc2, ySrc3, yDst;
                                 if (GetOpcodeSourceRegister(ref Y, hasReturn, out ySrc, out ySrc2, out ySrc3))
                                 {
-                                    bool replaced = false;
-                                    if (ySrc == xDst)
+                                    if (ySrc == xDst || ySrc2 == xDst || ySrc3 == xDst)
                                     {
-                                        if (propagationInline || cur.PreviousBlocks.Count > 1)
-                                        {
-                                            cannotRemove = true;
-                                            break;
-                                        }
-                                        replaced = true;
-                                        ReplaceOpcodeSource(ref Y, 0, xSrc);
+                                        cannotRemove = true;
+                                        break;
                                     }
-                                    if (ySrc2 == xDst)
-                                    {
-                                        if (propagationInline || cur.PreviousBlocks.Count > 1)
-                                        {
-                                            cannotRemove = true;
-                                            break;
-                                        }
-                                        replaced = true;
-                                        ReplaceOpcodeSource(ref Y, 1, xSrc);
-                                    }
-                                    if (ySrc3 == xDst)
-                                    {
-                                        if (propagationInline || cur.PreviousBlocks.Count > 1)
-                                        {
-                                            cannotRemove = true;
-                                            break;
-                                        }
-                                        replaced = true;
-                                        ReplaceOpcodeSource(ref Y, 2, xSrc);
-                                    }
-
-                                    if (replaced)
-                                        ins[j] = Y;
                                 }
                                 if(GetOpcodeDestRegister(ref Y, out yDst))
                                 {
@@ -249,11 +219,6 @@ namespace ILRuntime.Runtime.Intepreter.RegisterVM
                                         isAbort = true;
                                         break;
                                     }
-                                }
-                                if(Y.Code == OpCodeREnum.Ret && !propagationInline)
-                                {
-                                    isAbort = true;
-                                    break;
                                 }
                             }
 

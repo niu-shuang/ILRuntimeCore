@@ -14,7 +14,6 @@ namespace ILRuntime.Runtime.Intepreter.RegisterVM
 {
     class RegisterVMSymbolLink
     {
-        public int BaseRegisterIndex;
         public RegisterVMSymbol Value;
     }
 
@@ -37,7 +36,9 @@ namespace ILRuntime.Runtime.Intepreter.RegisterVM
         HashSet<int> pendingCP = new HashSet<int>();
         HashSet<CodeBasicBlock> prevBlocks = new HashSet<CodeBasicBlock>();
         HashSet<CodeBasicBlock> nextBlocks = new HashSet<CodeBasicBlock>();
+#if DEBUG && !DISABLE_ILRUNTIME_DEBUG
         Dictionary<int, RegisterVMSymbol> instructionMapping = new Dictionary<int, RegisterVMSymbol>();
+#endif
         short endRegister = -1;
         Instruction entry;
         public List<Instruction> Instructions { get { return instructions; } }
@@ -53,8 +54,6 @@ namespace ILRuntime.Runtime.Intepreter.RegisterVM
         public HashSet<CodeBasicBlock> NextBlocks { get { return nextBlocks; } }
 
         public Dictionary<int, RegisterVMSymbol> InstructionMapping { get { return instructionMapping; } }
-
-        public bool NeedLoadConstantElimination { get; set; }
         public short EndRegister
         {
             get
@@ -109,7 +108,7 @@ namespace ILRuntime.Runtime.Intepreter.RegisterVM
                     }
                 }
                 cur.AddInstruction(i);
-                if (i.OpCode.Code == Code.Switch || i.OpCode.Code == Code.Throw || i.OpCode.OperandType == OperandType.InlineBrTarget || i.OpCode.OperandType == OperandType.ShortInlineBrTarget)
+                if (i.OpCode.Code == Code.Switch || i.OpCode.OperandType == OperandType.InlineBrTarget || i.OpCode.OperandType == OperandType.ShortInlineBrTarget)
                 {
                     if (cur.entry != null)
                     {
@@ -143,10 +142,7 @@ namespace ILRuntime.Runtime.Intepreter.RegisterVM
                     }
                 }
             }
-            if (cur.entry != null)
-                entryMapping[cur.entry] = res.Count - 1;
-            else
-                res.RemoveAt(res.Count - 1);
+            entryMapping[cur.entry] = res.Count - 1;
 
             for (int i = 0; i < res.Count; i++)
             {
@@ -166,26 +162,6 @@ namespace ILRuntime.Runtime.Intepreter.RegisterVM
                                 case Code.Brfalse_S:
                                 case Code.Brtrue:
                                 case Code.Brtrue_S:
-                                case Code.Beq:
-                                case Code.Beq_S:
-                                case Code.Bge:
-                                case Code.Bge_S:
-                                case Code.Bge_Un:
-                                case Code.Bge_Un_S:
-                                case Code.Bgt:
-                                case Code.Bgt_S:
-                                case Code.Bgt_Un:
-                                case Code.Bgt_Un_S:
-                                case Code.Ble:
-                                case Code.Ble_S:
-                                case Code.Ble_Un:
-                                case Code.Ble_Un_S:
-                                case Code.Blt:
-                                case Code.Blt_S:
-                                case Code.Blt_Un:
-                                case Code.Blt_Un_S:
-                                case Code.Bne_Un:
-                                case Code.Bne_Un_S:
                                     if (i < res.Count - 1)
                                     {
                                         var next = res[i + 1];

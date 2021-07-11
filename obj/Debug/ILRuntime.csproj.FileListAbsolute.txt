@@ -1,0 +1,9 @@
+D:\ILRuntime\Assets\ILRuntime\ILRuntime\bin\Debug\ILRuntime.dll
+D:\ILRuntime\Assets\ILRuntime\ILRuntime\bin\Debug\ILRuntime.pdb
+D:\ILRuntime\Assets\ILRuntime\ILRuntime\bin\Debug\ILRuntime.Mono.Cecil.dll
+D:\ILRuntime\Assets\ILRuntime\ILRuntime\bin\Debug\ILRuntime.Mono.Cecil.pdb
+D:\ILRuntime\Assets\ILRuntime\ILRuntime\obj\Debug\ILRuntime.csproj.AssemblyReference.cache
+D:\ILRuntime\Assets\ILRuntime\ILRuntime\obj\Debug\ILRuntime.csproj.CoreCompileInputs.cache
+D:\ILRuntime\Assets\ILRuntime\ILRuntime\obj\Debug\ILRuntime.csproj.CopyComplete
+D:\ILRuntime\Assets\ILRuntime\ILRuntime\obj\Debug\ILRuntime.dll
+D:\ILRuntime\Assets\ILRuntime\ILRuntime\obj\Debug\ILRuntime.pdb

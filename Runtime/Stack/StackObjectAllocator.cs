@@ -26,6 +26,7 @@ namespace ILRuntime.Runtime.Stack
     {
         MemoryBlockInfo[] freeBlocks;
         StackObjectAllocateCallback allocCallback;
+        bool dirty;
 
         public StackObjectAllocator(StackObjectAllocateCallback cb)
         {
@@ -35,6 +36,7 @@ namespace ILRuntime.Runtime.Stack
 
         public void Clear()
         {
+            dirty = false;
             for(int i = 0; i < freeBlocks.Length; i++)
             {
                 if (freeBlocks[i].StartAddress == null)
@@ -98,33 +100,37 @@ namespace ILRuntime.Runtime.Stack
 
         public void FreeBefore(StackObject* ptr)
         {
-            int firstHit = -1;
-            var cnt = freeBlocks.Length;
-            for (int i = 0; i < cnt; i++)
+            if (dirty)
             {
-                if (freeBlocks[i].StartAddress == null)
-                    break;
-                if (freeBlocks[i].StartAddress <= ptr)
+                int firstHit = -1;
+                var cnt = freeBlocks.Length;
+                for (int i = 0; i < cnt; i++)
                 {
-                    freeBlocks[i] = default(MemoryBlockInfo);
-                    if (firstHit < 0)
-                        firstHit = i;
-                }
-            }
-            if (firstHit >= 0)
-            {
-                int validIdx = 0;
-                for (int i = firstHit; i < cnt; i++)
-                {
-                    if (freeBlocks[i].StartAddress != null)
+                    if (freeBlocks[i].StartAddress == null)
+                        break;
+                    if (freeBlocks[i].StartAddress <= ptr)
                     {
-                        if (validIdx != i)
+                        freeBlocks[i] = default(MemoryBlockInfo);
+                        if (firstHit < 0)
+                            firstHit = i;
+                    }
+                }
+                if (firstHit >= 0)
+                {
+                    int validIdx = 0;
+                    for (int i = firstHit; i < cnt; i++)
+                    {
+                        if (freeBlocks[i].StartAddress != null)
                         {
-                            freeBlocks[validIdx++] = freeBlocks[i];
+                            if(validIdx != i)
+                            {
+                                freeBlocks[validIdx++] = freeBlocks[i];
+                            }
                         }
                     }
                 }
             }
+            dirty = false;
         }
 
         public void Free(StackObject* ptr)
@@ -206,6 +212,7 @@ namespace ILRuntime.Runtime.Stack
             int emptyIndex = -1;
             StackObjectAllocation alloc;
             int cnt = freeBlocks.Length;
+            dirty = true;
             for (int i = 0; i < cnt; i++)
             {
                 if (freeBlocks[i].StartAddress == null)

@@ -837,20 +837,19 @@ namespace ILRuntime.Runtime.Enviorment
                 else
                     esp = ret;
                 var ilmethod = ((ILRuntimeMethodInfo)instance).ILMethod;
-                bool useRegister = ilmethod.ShouldUseRegisterVM;
                 if (p != null)
                 {
                     object[] arr = (object[])p;
                     for (int i = 0; i < ilmethod.ParameterCount; i++)
                     {
                         var res = ILIntepreter.PushObject(esp, mStack, CheckCrossBindingAdapter(arr[i]));
-                        if (esp->ObjectType < ObjectTypes.Object && useRegister)
+                        if (esp->ObjectType < ObjectTypes.Object && domain.EnableRegisterVM)
                             mStack.Add(null);
                         esp = res;
                     }
                 }
                 bool unhandled;
-                if (useRegister)
+                if (domain.EnableRegisterVM)
                     ret = intp.ExecuteR(ilmethod, esp, out unhandled);
                 else
                     ret = intp.Execute(ilmethod, esp, out unhandled);
